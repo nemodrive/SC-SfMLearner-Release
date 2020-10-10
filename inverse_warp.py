@@ -154,6 +154,36 @@ def pose_vec2mat(vec, rotation_mode='euler'):
     return transform_mat
 
 
+def pose_mat2vec(mat, cy_thresh=1e-2):
+    """
+    Convert projection matrix to rotation.
+    Args:s
+        mat: A transformation matrix -- [B, 3, 4]
+    Returns:
+        3DoF parameters in the order of rx, ry, rz -- [B, 3]
+    """
+    import math
+    import numpy as np
+
+    mat33 = mat[:, :3, :3]
+    b = mat33.shape[0]
+    R = mat33[0]
+    sy = math.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
+
+    singular = sy < 1e-6
+
+    if not singular:
+        x = math.atan2(R[2, 1], R[2, 2])
+        y = math.atan2(-R[2, 0], sy)
+        z = math.atan2(R[1, 0], R[0, 0])
+    else:
+        x = math.atan2(-R[1, 2], R[1, 1])
+        y = math.atan2(-R[2, 0], sy)
+        z = 0
+
+    return np.array([x, y, z])
+
+
 def inverse_warp(img, depth, pose, intrinsics, rotation_mode='euler', padding_mode='zeros'):
     """
     Inverse warp a source image to the target image plane.
