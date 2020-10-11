@@ -2,7 +2,7 @@ from __future__ import division
 import torch
 import random
 import numpy as np
-from scipy.misc import imresize
+from skimage.transform import imresize
 
 '''Set of tranform random routines that takes list of inputs as arguments,
 in order to have random but coherent transformations.'''
