@@ -72,7 +72,7 @@ class RandomScaleCrop(object):
 
         output_intrinsics[0] *= x_scaling
         output_intrinsics[1] *= y_scaling
-        scaled_images = [imresize(im, (scaled_h, scaled_w)) for im in images]
+        scaled_images = [resize(im, (scaled_h, scaled_w)) for im in images]
 
         offset_y = np.random.randint(scaled_h - in_h + 1)
         offset_x = np.random.randint(scaled_w - in_w + 1)
