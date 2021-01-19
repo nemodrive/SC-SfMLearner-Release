@@ -95,4 +95,8 @@ class PoseComposition:
         show_points_r = cv2.projectPoints(world_points_r[:, :3].astype(np.float64), rvec2, tvec,
                                           self.camera_matrix, None)[0]
 
+        show_points = show_points.astype(np.int)[:, 0]
+        show_points_l = show_points_l.astype(np.int)[:, 0]
+        show_points_r = show_points_r.astype(np.int)[:, 0]
+
         return world_points, world_points_l, world_points_r
