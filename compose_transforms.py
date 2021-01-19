@@ -151,5 +151,6 @@ if __name__ == "__main__":
     compose = PoseComposition(256, 832)
     compose.load_camera_matrix('/HDD1_2TB/storage/KITTI/data_odometry_color/dataset/sequences/09/calib.txt', frames[0])
     compose.load_model('pretrained_models/NeurIPS_Models/pose/cs+k_pose.tar')
+    compose.compose_transforms(frames, 1)
 
     print(frame_names)
