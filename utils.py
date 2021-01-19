@@ -64,3 +64,18 @@ def save_checkpoint(save_path, dispnet_state, exp_pose_state, is_best, filename=
         for prefix in file_prefixes:
             shutil.copyfile(save_path/'{}_{}'.format(prefix, filename),
                             save_path/'{}_model_best.pth.tar'.format(prefix))
+
+
+def read_calib_file(cid, path):
+    with open(path, 'r') as f:
+        C = f.readlines()
+
+    def parseLine(L, shape):
+        data = L.split()
+        data = np.array(data[1:]).reshape(shape).astype(np.float32)
+        return data
+
+    proj_c2p = parseLine(C[int(cid)], shape=(3, 4))
+    calib = proj_c2p[0:3, 0:3]
+
+    return calib

@@ -2,4 +2,4 @@
 *.pth
 *.txt
 *.pdf
-
+pretrained_models/
