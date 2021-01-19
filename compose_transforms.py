@@ -80,4 +80,19 @@ class PoseComposition:
         world_points_l = project_points_l.dot(crt_pose.transpose((0, 2, 1)))[0, 0]
         world_points_r = project_points_r.dot(crt_pose.transpose((0, 2, 1)))[0, 0]
 
+        # show points are for displaying the world points on a frame
+        world_points_show = np.concatenate([
+            world_points[:, :3],
+            world_points_l[:, :3],
+            world_points_r[:, :3]
+        ])
+
+        rvec2 = crt_pose[0][:3, :3]  # it is almost the identity matrix
+        show_points = cv2.projectPoints(world_points_show.astype(np.float64), rvec2, tvec,
+                                        self.camera_matrix, None)[0]
+        show_points_l = cv2.projectPoints(world_points_l[:, :3].astype(np.float64), rvec2, tvec,
+                                          self.camera_matrix, None)[0]
+        show_points_r = cv2.projectPoints(world_points_r[:, :3].astype(np.float64), rvec2, tvec,
+                                          self.camera_matrix, None)[0]
+
         return world_points, world_points_l, world_points_r
