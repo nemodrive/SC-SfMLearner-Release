@@ -275,12 +275,12 @@ def main():
             show_img_og = cv2.addWeighted(overlay, alpha, show_img_og, 1, 0)
 
             # find the contours of the overlay
-            imgray = cv2.cvtColor(overlay, cv2.COLOR_BGR2GRAY)
-            imgray = np.uint8(imgray)
-            ret, thresh = cv2.threshold(imgray, 127, 255, 0)
-            contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-            cv2.drawContours(show_img, contours, -1, (0, 255, 0), 1)
+            # imgray = cv2.cvtColor(overlay, cv2.COLOR_BGR2GRAY)
+            # imgray = np.uint8(imgray)
+            # ret, thresh = cv2.threshold(imgray, 127, 255, 0)
+            # contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            #
+            # cv2.drawContours(show_img, contours, -1, (0, 255, 0), 1)
 
             # if contours:
             #     distances = find_dist(thresh, contours, args.img_height, args.img_width)
