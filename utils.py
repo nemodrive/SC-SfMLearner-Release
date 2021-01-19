@@ -66,7 +66,7 @@ def save_checkpoint(save_path, dispnet_state, exp_pose_state, is_best, filename=
                             save_path/'{}_model_best.pth.tar'.format(prefix))
 
 
-def read_calib_file(cid, path):
+def read_calib_file(cid, path, zoom_x, zoom_y):
     with open(path, 'r') as f:
         C = f.readlines()
 
@@ -77,5 +77,7 @@ def read_calib_file(cid, path):
 
     proj_c2p = parseLine(C[int(cid)], shape=(3, 4))
     calib = proj_c2p[0:3, 0:3]
+    calib[0, :] *= zoom_x
+    calib[1, :] *= zoom_y
 
     return calib
