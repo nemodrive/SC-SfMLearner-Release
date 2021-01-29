@@ -1,7 +1,7 @@
-DATASET_DIR=//HDD1_2TB/storage/KITTI/data_odometry_color/dataset/sequences/
+DATASET_DIR=/mnt/storage/workspace/andreim/kitti/data_odometry_color/dataset/sequences/
 OUTPUT_DIR=results/vo/cs+k_pose/
 
-POSE_NET=/home/andrei/workspace/nemodrive/SC-SfMLearner-Release/pretrained_models/NeurIPS_Models/pose/cs+k_pose.tar
+POSE_NET=pretrained_models/NeurIPS_Models/pose/cs+k_pose.tar
 
 # save the visual odometry results to "results_dir/09.txt"
 python test_vo.py \

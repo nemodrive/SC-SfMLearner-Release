@@ -114,7 +114,7 @@ def main():
         #     torch.save(depth_i, "/HDD1_2TB/storage/kitti_self_supervised_labels/labels/DepthTensors/" + test_files[i].
         #                replace("/", '\\').replace("png", "pt"))
 
-        df = pd.read_csv("/home/andrei/workspace/nemodrive/SC-SfMLearner-Release/results/vo/k_pose_paper/"
+        df = pd.read_csv("/home/andrei/workspace/nemodrive/SC-SfMLearner-Release/results/vo/cs+k_pose_paper/"
                          "{}.txt".format(args.sequence), sep=" ", header=None)
         path = "/HDD1_2TB/storage/KITTI/data_odometry_color/dataset/sequences/{}".format(args.sequence) + \
                "/image_2/{0:06d}.png"
@@ -176,10 +176,10 @@ def main():
 
         f = open(args.segmentation_path + file_name, 'a+')
 
-        for i in tqdm(range(514, len(pose))):
+        for i in tqdm(range(len(pose))):
             crt_pose = np.stack(inv(pose[i]).dot(x) for x in pose[i:])
 
-            valid_frames = []
+            # valid_frames = []
 
             # tensor_i = torch.load("/HDD1_2TB/storage/kitti_self_supervised_labels/labels/RGBTensors/" + test_files[i].
             #                       replace("/", '\\').replace("png", "pt"))
