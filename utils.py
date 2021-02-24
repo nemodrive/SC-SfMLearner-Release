@@ -7,6 +7,7 @@ import datetime
 from collections import OrderedDict
 from matplotlib import cm
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+from inverse_warp import pixel2cam
 
 
 def high_res_colormap(low_res_cmap, resolution=1000, max_value=1):
@@ -81,3 +82,31 @@ def read_calib_file(cid, path, zoom_x, zoom_y):
     calib[1, :] *= zoom_y
 
     return calib
+
+
+# from https://github.com/RobertSamoilescu/Steering-Evaluator-2/blob/master/pipeline/utils.py
+def get_factor(depth: torch.tensor, intrinsic):
+    """
+    @param disp: depth map, [B, 1, H, W]
+    :returns depth factor
+    """
+    batch_size, _, height, width = depth.shape
+    CAM_HEIGHT = 1.5
+
+    # construct intrinsic camera matrix
+    intrinsic = torch.tensor(intrinsic).repeat(batch_size, 1, 1)
+
+    # get camera coordinates
+    cam_coords = pixel2cam(depth.squeeze(1), intrinsic.inverse())
+
+    # get some samples from the ground, center of the image
+    samples = cam_coords[:, 1, height-10:height, width//2 - 50:width//2 + 50]
+    samples = samples.reshape(samples.shape[0], -1)
+
+    # get the median
+    median = samples.median(1)[0]
+
+    # get depth factor
+    factor = CAM_HEIGHT / median
+    return factor.reshape(factor.shape, 1, 1, 1)
+

@@ -5,6 +5,7 @@ import numpy as np
 from path import Path
 import argparse
 from tqdm import tqdm
+import os
 
 from inverse_warp import *
 from scipy.ndimage.interpolation import zoom
@@ -51,36 +52,41 @@ def main():
     pose_net.load_state_dict(weights_pose['state_dict'], strict=False)
     pose_net.eval()
 
-    image_dir = Path(args.dataset_dir + args.sequence + "/")
-    output_dir = Path(args.output_dir)
-    output_dir.makedirs_p()
+    sequences = os.listdir(args.dataset_dir)
 
-    test_files = sum([image_dir.files('*.{}'.format(ext))
-                      for ext in args.img_exts], [])
-    test_files.sort()
-    print('{} files to test'.format(len(test_files)))
+    for seq in sequences:
+        if '.txt' not in seq:
+            args.sequence = seq
+            image_dir = Path(args.dataset_dir + args.sequence + "/")
+            output_dir = Path(args.output_dir)
+            output_dir.makedirs_p()
 
-    global_pose = np.identity(4)
-    poses = [global_pose[0:3, :].reshape(1, 12)]
+            test_files = sum([image_dir.files('*.{}'.format(ext))
+                              for ext in args.img_exts], [])
+            test_files.sort()
+            print('{} files to test'.format(len(test_files)))
 
-    n = len(test_files)
-    tensor_img1 = load_tensor_image(test_files[0], args)
+            global_pose = np.identity(4)
+            poses = [global_pose[0:3, :].reshape(1, 12)]
 
-    for iter in tqdm(range(n - 1)):
-        tensor_img2 = load_tensor_image(test_files[iter+1], args)
-        pose = pose_net(tensor_img1, tensor_img2)
-        pose_mat = pose_vec2mat(pose).squeeze(0).cpu().numpy()
-        pose_mat = np.vstack([pose_mat, np.array([0, 0, 0, 1])])
-        global_pose = global_pose @ np.linalg.inv(pose_mat)
+            n = len(test_files)
+            tensor_img1 = load_tensor_image(test_files[0], args)
 
-        poses.append(global_pose[0:3, :].reshape(1, 12))
+            for iter in tqdm(range(n - 1)):
+                tensor_img2 = load_tensor_image(test_files[iter+1], args)
+                pose = pose_net(tensor_img1, tensor_img2)
+                pose_mat = pose_vec2mat(pose).squeeze(0).cpu().numpy()
+                pose_mat = np.vstack([pose_mat, np.array([0, 0, 0, 1])])
+                global_pose = global_pose @ np.linalg.inv(pose_mat)
 
-        # update
-        tensor_img1 = tensor_img2
+                poses.append(global_pose[0:3, :].reshape(1, 12))
 
-    poses = np.concatenate(poses, axis=0)
-    filename = Path(args.output_dir + args.sequence + ".txt")
-    np.savetxt(filename, poses, delimiter=' ', fmt='%1.8e')
+                # update
+                tensor_img1 = tensor_img2
+
+            poses = np.concatenate(poses, axis=0)
+            filename = Path(args.output_dir + args.sequence + ".txt")
+            np.savetxt(filename, poses, delimiter=' ', fmt='%1.8e')
 
 
 if __name__ == '__main__':

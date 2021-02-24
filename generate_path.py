@@ -21,18 +21,18 @@ from inverse_warp import inverse_warp2
 parser = argparse.ArgumentParser(description='Script for visualizing the path',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("--pretrained-dispnet", type=str, help="pretrained DispNet path",
-                    default='/home/andrei/workspace/nemodrive/SC-SfMLearner-Release/checkpoints/papers/cs+k_depth.tar')
+                    default='pretrained_models/NeurIPS_Models/cs-pretrain/exp_pose_model_best.pth.tar')
 parser.add_argument("--img-height", default=256, type=int, help="Image height")
 parser.add_argument("--img-width", default=832, type=int, help="Image width")
 parser.add_argument("--sequence", default='09', type=str, help="sequence to test")
 parser.add_argument("--dataset-dir", type=str, help="Dataset directory",
-                    default='/HDD1_2TB/storage/KITTI/data_odometry_color/dataset/sequences/')
+                    default='/mnt/storage/workspace/andreim/kitti/data_odometry_color/dataset/sequences/')
 parser.add_argument("--scale-translation", default=False,
                     nargs='*', type=bool, help="specifies if the translation is scaled to gt")
 parser.add_argument("--img-exts", default=['png', 'jpg', 'bmp'],
                     nargs='*', type=str, help="images extensions to glob")
 parser.add_argument("--segmentation-path",
-                    default="/HDD1_2TB/storage/kitti_self_supervised_labels/labels/ImageSets/Segmentation/",
+                    default="/mnt/storage/workspace/andreim/nemodrive/kitti_self_supervised_labels/",
                     nargs='*', type=str, help="path to segmentation dataset")
 
 
@@ -90,10 +90,10 @@ def main():
 
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-        weights_disp = torch.load(args.pretrained_dispnet)
-        disp_net = models.DispResNet().to(device)
-        disp_net.load_state_dict(weights_disp['state_dict'], strict=False)
-        disp_net.eval()
+        #weights_disp = torch.load(args.pretrained_dispnet)
+        #disp_net = models.DispResNet().to(device)
+        #disp_net.load_state_dict(weights_disp['state_dict'], strict=False)
+        #disp_net.eval()
 
         image_dir = Path(args.dataset_dir + args.sequence + "/image_2/")
 
@@ -114,10 +114,8 @@ def main():
         #     torch.save(depth_i, "/HDD1_2TB/storage/kitti_self_supervised_labels/labels/DepthTensors/" + test_files[i].
         #                replace("/", '\\').replace("png", "pt"))
 
-        df = pd.read_csv("/home/andrei/workspace/nemodrive/SC-SfMLearner-Release/results/vo/cs+k_pose_paper/"
-                         "{}.txt".format(args.sequence), sep=" ", header=None)
-        path = "/HDD1_2TB/storage/KITTI/data_odometry_color/dataset/sequences/{}".format(args.sequence) + \
-               "/image_2/{0:06d}.png"
+        df = pd.read_csv("results/vo/cs+k_pose_kitti/{}.txt".format(args.sequence), sep=" ", header=None)
+        path = args.dataset_dir + args.sequence + "/image_2/{0:06d}.png"
         pose = df.values.reshape((len(df), 3, 4))
 
         x = np.zeros((len(pose), 1, 4))
@@ -126,16 +124,15 @@ def main():
 
         pose = np.concatenate([pose, x], axis=1)
 
-        df_gt = pd.read_csv("/home/andrei/workspace/nemodrive/SC-SfMLearner-Release/results/vo/k_pose_paper/"
-                            "{}.txt"  # "/HDD1_2TB/storage/KITTI/data_odometry_color/dataset/poses/{}.txt"
-                            .format(args.sequence), sep=" ", header=None)  # change this with real gt if there is
-        pose_gt = df_gt.values.reshape((len(df), 3, 4))
+        #df_gt = pd.read_csv("/mnt/storage/workspace/andreim/kitti/data_odometry_color/dataset/poses/{}.txt"
+        #                    .format(args.sequence), sep=" ", header=None)  # change this with real gt if there is
+        #pose_gt = df_gt.values.reshape((len(df), 3, 4))
 
-        x_gt = np.zeros((len(pose_gt), 1, 4))
+        #x_gt = np.zeros((len(pose_gt), 1, 4))
 
-        x_gt[:, :, -1] = 1
+        #x_gt[:, :, -1] = 1
 
-        pose_gt = np.concatenate([pose_gt, x], axis=1)
+        #pose_gt = np.concatenate([pose_gt, x], axis=1)
 
         pose_scaled = pose.copy()
 
@@ -143,10 +140,10 @@ def main():
             scale_factor = np.sum(pose_gt[:, :, -1] * pose[:, :, -1]) / np.sum(pose[:, :, -1] ** 2)
             pose[:, :, -1] = scale_factor * pose[:, :, -1]
         else:
-            pose[:, :, -1] *= 38
+            pose[:, :, -1] *= 32.8
 
-        scale_factor = np.sum(pose_gt[:, :, -1] * pose_scaled[:, :, -1]) / np.sum(pose_scaled[:, :, -1] ** 2)
-        pose_scaled[:, :, -1] = scale_factor * pose_scaled[:, :, -1]
+        #scale_factor = np.sum(pose_gt[:, :, -1] * pose_scaled[:, :, -1]) / np.sum(pose_scaled[:, :, -1] ** 2)
+        #pose_scaled[:, :, -1] = scale_factor * pose_scaled[:, :, -1]
 
         # print(scale_factor)
 
@@ -161,25 +158,27 @@ def main():
         NUM_SHOW_POINTS = 70
 
         # homogeneous point [x, y, z, w] corresponds to the three-dimensional point [x/w, y/w, z/w].
-        project_points = np.array([[0, 1.7, 3, 1]]).reshape(1, 1, 4)
+        project_points = np.array([[0, 1.65, 3, 1]]).reshape(1, 1, 4)
         # homogeneous point [x, y, z, w] corresponds to the three-dimensional point [x/w, y/w, z/w].
-        project_points_l = np.array([[-0.8, 1.7, 3, 1]]).reshape(1, 1, 4)
+        project_points_l = np.array([[-0.8, 1.65, 3, 1]]).reshape(1, 1, 4)
         # homogeneous point [x, y, z, w] corresponds to the three-dimensional point [x/w, y/w, z/w].
-        project_points_r = np.array([[+0.8, 1.7, 3, 1]]).reshape(1, 1, 4)
+        project_points_r = np.array([[+0.8, 1.65, 3, 1]]).reshape(1, 1, 4)
 
+        if seq in ['03', '04', '06', '11']:
+            file_name = 'val.txt'
         if seq in ['09', '10', '19']:
-            file_name = 'val_2.txt'
+            file_name = 'test.txt'
         else:
-            file_name = 'train_2.txt'
+            file_name = 'train.txt'
 
         # file_name = 'train+val.txt'
 
-        f = open(args.segmentation_path + file_name, 'a+')
+        f = open(args.segmentation_path + 'labels/ImageSets/Segmentation/' + file_name, 'a+')
 
         for i in tqdm(range(len(pose))):
             crt_pose = np.stack(inv(pose[i]).dot(x) for x in pose[i:])
 
-            # valid_frames = []
+            valid_frames = []
 
             # tensor_i = torch.load("/HDD1_2TB/storage/kitti_self_supervised_labels/labels/RGBTensors/" + test_files[i].
             #                       replace("/", '\\').replace("png", "pt"))
@@ -245,8 +244,8 @@ def main():
 
             ok = True
 
-            cv2.imshow('img', show_img)  # distances / distances.max())
-            cv2.waitKey(0)
+            #cv2.imshow('img', show_img)  # distances / distances.max())
+            #cv2.waitKey(0)
 
             for it, p1, p2, p3, p4 in zip(range(len(show_points_l) - 1), show_points_l[:-1], show_points_r[:-1],
                                           show_points_l[1:], show_points_r[1:]):
@@ -294,14 +293,14 @@ def main():
 
             show_img = cv2.addWeighted(distances / distances.max(), alpha, show_img, 1, 0)
 
-            cv2.imshow('img', distances / distances.max())  # distances / distances.max())
-            cv2.waitKey(0)
+            #cv2.imshow('img', distances / distances.max())  # distances / distances.max())
+            #cv2.waitKey(0)
 
-            cv2.imshow('img', show_img)  # distances / distances.max())
-            cv2.waitKey(0)
+            #cv2.imshow('img', show_img)  # distances / distances.max())
+            #cv2.waitKey(0)
 
-            cv2.imshow('img', overlay)  # distances / distances.max())
-            cv2.waitKey(0)
+            #cv2.imshow('img', overlay)  # distances / distances.max())
+            #cv2.waitKey(0)
 
             # print(distances.max(), distances.min())
             #
@@ -312,11 +311,11 @@ def main():
             # plt.margins(0, 0)
             # plt.gca().xaxis.set_major_locator(plt.NullLocator())
             # plt.gca().yaxis.set_major_locator(plt.NullLocator())
-            distances = distances[:, :, 1]
-            sns.set(font_scale=3)
-            sns.heatmap(distances / distances.max(), cbar_kws={'orientation': 'horizontal'})#, cbar=False, xticklabels=False, yticklabels=False)
-            plt.waitforbuttonpress()
-            plt.close()
+            #distances = distances[:, :, 1]
+            #sns.set(font_scale=3)
+            #sns.heatmap(distances / distances.max(), cbar_kws={'orientation': 'horizontal'})#, cbar=False, xticklabels=False, yticklabels=False)
+            #plt.waitforbuttonpress()
+            #plt.close()
 
             # cv2.imwrite("/HDD1_2TB/storage/kitti_self_supervised_labels/labels/JPEGImages/" + seq + "_{0:06d}.jpg".format(i), show_img * 255.0)
             # cv2.imshow("img", show_img)
@@ -329,7 +328,8 @@ def main():
             # overlay.show()
             # a = np.array(overlay)
             if np.sum(overlay) > 0.0:
-                # cv2.imwrite("/HDD1_2TB/storage/kitti_self_supervised_labels/labels/SoftRoadGaussianLabels/" + path.format(i).replace('/', '\\'), distances)
+                cv2.imwrite(args.segmentation_path + "labels/SoftLabels/" + path.format(i).replace('/', '\\'), distances)
+                cv2.imwrite(args.segmentation_path + "labels/HardLabels/" + path.format(i).replace('/', '\\'), overlay)
                 # np.save("/HDD1_2TB/storage/kitti_self_supervised_labels/labels/SoftRoad/" + path.format(i).replace('/', '\\').replace('.png', '.npy'), distances)
                 sum_euler = sum_euler[1]
                 if -limit_1 <= sum_euler <= limit_1:
@@ -343,7 +343,7 @@ def main():
                 else:
                     category = 4
                 # print(sum_euler, category, np.sum(overlay))
-                # f.write(path.format(i) + ',' + str(category) + ',' + str(sum_euler) + '\n')
+                f.write(path.format(i) + ',' + str(category) + ',' + str(sum_euler) + '\n')
             # cv2.imshow('res', overlay)
             # cv2.waitKey(0)
             # plt.waitforbuttonpress()
